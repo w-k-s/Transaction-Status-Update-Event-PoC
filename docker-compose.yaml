@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+
+  processing:
+    build:
+      context: transaction-processing-service
+      dockerfile: Dockerfile
+    container_name: txn-processing
+    ports:
+      - "3000:3000"
+    links:
+      - kong
+
+  kong:
+    build:
+      context: kong
+      dockerfile: Dockerfile
+    container_name: kong-gateway
+    restart: on-failure
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+      - "8003:8003"
+      - "8004:8004"
+      - "8443:8443"
+      - "8444:8444"
+      - "8445:8445"
+    volumes:
+      - ./kong/kong.conf:/etc/kong/kong.conf:rw
+      - ./kong/kong.yaml:/etc/kong/kong.yaml:ro
+    environment:
+      - KONG_DATABASE=off
+      - KONG_DECLARATIVE_CONFIG=/etc/kong/kong.yaml
+      - KONG_PROXY_ACCESS_LOG=/dev/stdout
+      - KONG_ADMIN_ACCESS_LOG=/dev/stdout
+      - KONG_PROXY_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_ERROR_LOG=/dev/stderr
+      - KONG_ADMIN_LISTEN=0.0.0.0:8001
+      - KONG_ADMIN_GUI_URL=http://localhost:8002
